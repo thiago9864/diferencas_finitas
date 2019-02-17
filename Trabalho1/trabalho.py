@@ -19,8 +19,8 @@ v = 3.0 #vento sul-norte
 h = 0.2 #espacamento da grade
 dt = 0.2; #espaco de tempo 
 
-n = 30 #quantidade de pontos
-passos = 10 #quantos passos no tempo vai dar
+n = 35 #quantidade de pontos
+passos = 8 #quantos passos no tempo vai dar
 temperatura_inicial = 25.0
 
 def matrizEulerEstatico(n, u, v, h):
@@ -87,69 +87,134 @@ matriz = matrizDiferencaCentral(n, u, v, h, dt)
 
 
 #vetor de vetores
-T = np.zeros((passos+1, n**2), np.float64)
+Ta = np.zeros((passos+1, n**2), np.float64)
+Tb = np.zeros((passos+1, n**2), np.float64)
+Tc = np.zeros((passos+1, n**2), np.float64)
 
 #vetor pra armazenar os dados de um ponto pro teste de estabilidade
 posicao_estabilidade = np.zeros((passos+1), np.float64)
 vetor_estabilidade = np.zeros((passos+1), np.float64)
+vetor_estabilidade_mais20 = np.zeros((passos+1), np.float64)
+vetor_estabilidade_menos20 = np.zeros((passos+1), np.float64)
 
-#cria matriz com a temperatura inicial
-T[0] = np.ones((n**2), np.float64) * temperatura_inicial
+'''
+Sistema:
+    T(n+1) = (I + dt*A) * T(n)
+    T(0) = Temperatura inicial
+    
+Com:
+    I: matriz identidade
+    dt: variacao de tempo
+    A: matriz de diferencas finitas
+    T(n): matriz atual
+    T(n+1): proxima matriz
+'''    
 
-
-#print(T[0])
-#print("------")
-#print(matriz)
 
 #parte da formula que nao muda
+#C = (I + dt*A)
 C = (matriz + np.identity(n**2)) * dt
 
-#print("------")
-#print(C)
+#Aqui ativa aquela variavel aleatoria que o professor pediu pra colocar
+#usar True ou False
+usarVetorAleatorio = False
 
+
+#------ Temperatura a verificar -------
+
+
+#cria matriz com a temperatura inicial
+Ta[0] = np.ones((n**2), np.float64) * temperatura_inicial
 
 #calcula a formula
 for i in range(passos):
-    T[i+1] = np.dot(C, T[i])
+    if(usarVetorAleatorio):
+        W = np.random.rand(n**2,)
+        Ta[i+1] = np.dot(C, Ta[i]) + W
+    else:
+        Ta[i+1] = np.dot(C, Ta[i])
+    
 
-#print("------")
-#print(T)
+#------ Temperatura a verificar + 20 graus -------
+        
 
+#cria matriz com a temperatura inicial
+Tb[0] = np.ones((n**2), np.float64) * (temperatura_inicial + 20)
+
+#calcula a formula
+for i in range(passos):
+    if(usarVetorAleatorio):
+        W = np.random.rand(n**2,)
+        Tb[i+1] = np.dot(C, Tb[i]) + W
+    else:
+        Tb[i+1] = np.dot(C, Tb[i])
+    
+
+#------ Temperatura a verificar - 20 graus -------
+        
+
+#cria matriz com a temperatura inicial
+Tc[0] = np.ones((n**2), np.float64) * (temperatura_inicial - 20)
+
+#calcula a formula
+for i in range(passos):
+    if(usarVetorAleatorio):
+        W = np.random.rand(n**2,)
+        Tc[i+1] = np.dot(C, Tc[i]) + W
+    else:
+        Tc[i+1] = np.dot(C, Tc[i])
+    
+
+
+
+#imprime e separa pontos pra testar a estabilidade
 for k in range(passos+1):
     
     #converte de vetor pra matriz
-    M = T[k].reshape((n, n))
+    Ma = Ta[k].reshape((n, n))
+    Mb = Tb[k].reshape((n, n))
+    Mc = Tc[k].reshape((n, n))
 
     #pega um ponto que nao esta no meio
     i = int(n * 0.75)
     j = int(n * 0.75)
     
      #tira um ponto pra testar a estabilidade
-    posicao_estabilidade[k] = k
-    vetor_estabilidade[k] = M[i][j]
+    posicao_estabilidade[k] = k * dt
+    vetor_estabilidade[k] = Ma[i][j]
+    vetor_estabilidade_mais20[k] = Mb[i][j]
+    vetor_estabilidade_menos20[k] = Mc[i][j]
     
-    plt.matshow(M, vmin=-temperatura_inicial, vmax=temperatura_inicial)
+    #aqui imprime a matriz numa imagem colorida
+    plt.matshow(Ma, vmin=-temperatura_inicial, vmax=temperatura_inicial)
     plt.colorbar()
     plt.show()
 
 
 
 
-
-
-#imprime o teste de estabilidade
+#------ Imprime o grafico de teste de estabilidade -------
+    
 plt.plot(
     posicao_estabilidade, vetor_estabilidade, 'r-' 
     )
-plt.ylabel(u"valor") #esse 'u' antes da string é pra converter o texto pra unicode
-plt.xlabel(u"passo")
+plt.plot(
+    posicao_estabilidade, vetor_estabilidade_mais20, 'g-' 
+    )
+plt.plot(
+    posicao_estabilidade, vetor_estabilidade_menos20, 'b-' 
+    )
+
+plt.ylabel(u"temperatura") #esse 'u' antes da string é pra converter o texto pra unicode
+plt.xlabel(u"tempo")
 
 
 #legendas do grafico    
-#se_line = mlines.Line2D([], [], color='blue', marker='', markersize=0, label=u'Solução Exata')
-#ac_line = mlines.Line2D([], [], color='red', marker='', markersize=0, label=u'Aproximação)')
+a_line = mlines.Line2D([], [], color='red', marker='', markersize=0, label=u'Temperatura')
+b_line = mlines.Line2D([], [], color='green', marker='', markersize=0, label=u'Temperatura + 20 graus)')
+c_line = mlines.Line2D([], [], color='blue', marker='', markersize=0, label=u'Temperatura - 20 graus)')
 
-#plt.legend(handles=[se_line, ac_line], loc='lower center')
+plt.legend(handles=[a_line, b_line, c_line], loc='upper right')
 
 '''Posicoes da legenda 
     upper right
@@ -165,9 +230,4 @@ plt.xlabel(u"passo")
 '''
 
 plt.title(u"Temperatura no ponto pesquisado", )
-
-#muda os limites dos eixos
-#por: x_inicial, x_final, y_inicial, y_final
-#plt.axis([0, 1, 0, 1.05])
-
 plt.show()
