@@ -4,7 +4,7 @@ Created on Fri Feb 15 14:49:23 2019
 
 @author: gabic
 """
-
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -14,14 +14,27 @@ from matplotlib.pyplot import figure
 figure(num=None, figsize=(8, 6), dpi=72, facecolor='w', edgecolor='k')
 
 #Definicao de valores
-u = 4.0 #vento leste-oeste
-v = 3.0 #vento sul-norte
-h = 0.2 #espacamento da grade
-dt = 0.2; #espaco de tempo 
+u = -0.1 #vento leste-oeste
+v = 0.125 #vento sul-norte
+#h = 0.2 #espacamento da grade
+dt = 1.0 #espaco de tempo 
 
-n = 30 #quantidade de pontos
-passos = 50 #quantos passos no tempo vai dar
-temperatura_inicial = 25.0
+n = 3 #quantidade de pontos
+passos = 10 #quantos passos no tempo vai dar
+temperatura_inicial = 20.0
+
+h = 1.0/n #espacamento da grade
+
+def imprimeMatriz(matriz):
+        ordem = len(matriz[0])
+        just_space = 5
+        for i in range(ordem):
+            for j in range(ordem):
+                sys.stdout.write("{0:.1f}".format(matriz[i][j]).ljust(just_space))
+            #sys.stdout.write("| " + repr(vetor_solucao[i]).ljust(just_space))
+            sys.stdout.flush()
+            print("")
+        print("--------------------------")
 
 def matrizEulerEstatico(n, u, v, h):
     
@@ -41,15 +54,15 @@ def matrizEulerEstatico(n, u, v, h):
     
     A = np.kron(np.identity(n), T) + np.kron(K, I)
 
-    '''
+    
     print(T)
     print("------")
     print(I)
     print("------")
     print(K)
     print("------")
-    print(A)
-    '''
+    imprimeMatriz(A)
+    
     
     return A
 
@@ -70,15 +83,15 @@ def matrizDiferencaCentral(n, u, v, h, dt):
     
     A = np.kron(np.identity(n), T) + np.kron(K, I)
 
-    '''
+    
     print(T)
     print("------")
     print(I)
     print("------")
     print(K)
     print("------")
-    print(A)
-    '''
+    imprimeMatriz(A)
+    
     
     return A   
 
@@ -98,8 +111,11 @@ def contornoEuler(n, u, v, h, contorno):
             indice += 1
     return V
 
-#matriz = matrizEulerEstatico(n, u, v, h)
-matriz = matrizDiferencaCentral(n, u, v, h, dt)
+matriz = matrizEulerEstatico(n, u, v, h)
+#matriz = matrizDiferencaCentral(n, u, v, h, dt)
+
+autovalorA = np.linalg.eig(matriz)
+#print("Autovalor A: ", autovalorA)
 
 Q = contornoEuler(n, u, v, h, temperatura_inicial)
 
@@ -136,7 +152,7 @@ C = (matriz + np.identity(n**2)) * dt
 
 #Aqui ativa aquela variavel aleatoria que o professor pediu pra colocar
 #usar True ou False
-usarVetorAleatorio = True
+usarVetorAleatorio = False
 
 
 #------ Temperatura a verificar -------
@@ -158,30 +174,30 @@ for i in range(passos):
         
 
 #cria matriz com a temperatura inicial
-Tb[0] = np.ones((n**2), np.float64) * (temperatura_inicial + 20)
+Tb[0] = np.ones((n**2), np.float64) * (temperatura_inicial + 5)
 
 #calcula a formula
 for i in range(passos):
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
-        Tb[i+1] = np.dot(C, Tb[i]) + Q + W
+        Tb[i+1] = np.dot(C, Tb[i]) + W
     else:
-        Tb[i+1] = np.dot(C, Tb[i]) + Q
+        Tb[i+1] = np.dot(C, Tb[i])
     
 
 #------ Temperatura a verificar - 20 graus -------
         
 
 #cria matriz com a temperatura inicial
-Tc[0] = np.ones((n**2), np.float64) * (temperatura_inicial - 20)
+Tc[0] = np.ones((n**2), np.float64) * (temperatura_inicial - 5)
 
 #calcula a formula
 for i in range(passos):
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
-        Tc[i+1] = np.dot(C, Tc[i]) + Q + W
+        Tc[i+1] = np.dot(C, Tc[i]) + W
     else:
-        Tc[i+1] = np.dot(C, Tc[i]) + Q
+        Tc[i+1] = np.dot(C, Tc[i])
     
 
 
@@ -207,10 +223,12 @@ for k in range(passos+1):
     #aqui imprime a matriz numa imagem colorida
     
     #plt.matshow(Ma, vmin=-temperatura_inicial, vmax=temperatura_inicial)
+    
+    '''
     plt.matshow(Ma)
     plt.colorbar()
     plt.show()
-    
+    '''
 
 
 
@@ -233,10 +251,10 @@ plt.xlabel(u"tempo")
 
 #legendas do grafico    
 a_line = mlines.Line2D([], [], color='red', marker='', markersize=0, label=u'Temperatura')
-b_line = mlines.Line2D([], [], color='green', marker='', markersize=0, label=u'Temperatura + 20 graus)')
-c_line = mlines.Line2D([], [], color='blue', marker='', markersize=0, label=u'Temperatura - 20 graus)')
+b_line = mlines.Line2D([], [], color='green', marker='', markersize=0, label=u'Temperatura + 5 graus)')
+c_line = mlines.Line2D([], [], color='blue', marker='', markersize=0, label=u'Temperatura - 5 graus)')
 
-plt.legend(handles=[a_line, b_line, c_line], loc='upper right')
+plt.legend(handles=[a_line, b_line, c_line], loc='center')
 
 '''Posicoes da legenda 
     upper right
