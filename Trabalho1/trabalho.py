@@ -14,13 +14,13 @@ from matplotlib.pyplot import figure
 figure(num=None, figsize=(8, 6), dpi=72, facecolor='w', edgecolor='k')
 
 #Definicao de valores
-u = -4.0 #vento leste-oeste
+u = 4.0 #vento leste-oeste
 v = 3.0 #vento sul-norte
 h = 0.2 #espacamento da grade
 dt = 0.2; #espaco de tempo 
 
-n = 35 #quantidade de pontos
-passos = 8 #quantos passos no tempo vai dar
+n = 30 #quantidade de pontos
+passos = 50 #quantos passos no tempo vai dar
 temperatura_inicial = 25.0
 
 def matrizEulerEstatico(n, u, v, h):
@@ -82,9 +82,28 @@ def matrizDiferencaCentral(n, u, v, h, dt):
     
     return A   
 
+def contornoEuler(n, u, v, h, contorno):
+    
+    q = -u/h
+    r = v/h
+    V = np.zeros((n**2), np.float64)
+    indice = 0
+    
+    for i in range(1,n+1):
+        for j in range(1,n+1):
+            if(i-1 == 0):
+                V[indice] = V[indice] + contorno * q
+            if(j == n):
+                V[indice] = V[indice] + contorno * r
+            indice += 1
+    return V
+
 #matriz = matrizEulerEstatico(n, u, v, h)
 matriz = matrizDiferencaCentral(n, u, v, h, dt)
 
+Q = contornoEuler(n, u, v, h, temperatura_inicial)
+
+#print(Q)
 
 #vetor de vetores
 Ta = np.zeros((passos+1, n**2), np.float64)
@@ -99,7 +118,7 @@ vetor_estabilidade_menos20 = np.zeros((passos+1), np.float64)
 
 '''
 Sistema:
-    T(n+1) = (I + dt*A) * T(n)
+    T(n+1) = (I + dt*A) * T(n) + Q
     T(0) = Temperatura inicial
     
 Com:
@@ -117,7 +136,7 @@ C = (matriz + np.identity(n**2)) * dt
 
 #Aqui ativa aquela variavel aleatoria que o professor pediu pra colocar
 #usar True ou False
-usarVetorAleatorio = False
+usarVetorAleatorio = True
 
 
 #------ Temperatura a verificar -------
@@ -145,9 +164,9 @@ Tb[0] = np.ones((n**2), np.float64) * (temperatura_inicial + 20)
 for i in range(passos):
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
-        Tb[i+1] = np.dot(C, Tb[i]) + W
+        Tb[i+1] = np.dot(C, Tb[i]) + Q + W
     else:
-        Tb[i+1] = np.dot(C, Tb[i])
+        Tb[i+1] = np.dot(C, Tb[i]) + Q
     
 
 #------ Temperatura a verificar - 20 graus -------
@@ -160,9 +179,9 @@ Tc[0] = np.ones((n**2), np.float64) * (temperatura_inicial - 20)
 for i in range(passos):
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
-        Tc[i+1] = np.dot(C, Tc[i]) + W
+        Tc[i+1] = np.dot(C, Tc[i]) + Q + W
     else:
-        Tc[i+1] = np.dot(C, Tc[i])
+        Tc[i+1] = np.dot(C, Tc[i]) + Q
     
 
 
@@ -186,9 +205,12 @@ for k in range(passos+1):
     vetor_estabilidade_menos20[k] = Mc[i][j]
     
     #aqui imprime a matriz numa imagem colorida
-    plt.matshow(Ma, vmin=-temperatura_inicial, vmax=temperatura_inicial)
+    
+    #plt.matshow(Ma, vmin=-temperatura_inicial, vmax=temperatura_inicial)
+    plt.matshow(Ma)
     plt.colorbar()
     plt.show()
+    
 
 
 
