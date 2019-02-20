@@ -14,19 +14,17 @@ from matplotlib.pyplot import figure
 
 figure(num=None, figsize=(8, 6), dpi=72, facecolor='w', edgecolor='k')
 
-#valores do INPE pra usar
-arr_u = [-1.3458590371219483,-0.6400620056791018,-0.8864756513261381,-1.2725301647426948,-0.9758795933021007,-1.2758756206358721]
-arr_v = [0.11774740845208621,0.03466451912324088,-0.17713531439523605,-0.1856420744872518,-0.015330341696337206,0.01781574211274955]
-
 
 #Definicao de valores
 dt = 1 #espaco de tempo 
-n = 10 #quantidade de pontos
+n = 5 #quantidade de pontos
+u = -0.1
+v = 0.5/2
 
-passos = len(arr_u) #quantos passos no tempo vai dar
+passos = 100 #quantos passos no tempo vai dar
 temperatura_inicial = 26.8
 
-h = 20.0/n #espacamento da grade
+h = 10.0/n #espacamento da grade
 
 def imprimeMatriz(matriz):
         ordem = len(matriz[0])
@@ -156,21 +154,18 @@ Com:
 '''    
 
 
-def criaMatrizC(pos, n, h, dt):
-    u = arr_u[pos]
-    v = arr_v[pos]
-    print(u, v)
+
     
-    matriz = matrizEulerEstatico(n, u, v, h)
-    #matriz = matrizEuler(n, u, v, h, dt)
-    #matriz = matrizDiferencaCentral(n, u, v, h, dt)
-    
-    C = np.identity(n**2) + (matriz * dt)
-    return C
+matriz = matrizEulerEstatico(n, u, v, h)
+#matriz = matrizEuler(n, u, v, h, dt)
+#matriz = matrizDiferencaCentral(n, u, v, h, dt)
+
+C = np.identity(n**2) + (matriz * dt)
+
 
 #Aqui ativa aquela variavel aleatoria que o professor pediu pra colocar
 #usar True ou False
-usarVetorAleatorio = True
+usarVetorAleatorio = False
 
 
 #------ Temperatura a verificar -------
@@ -181,8 +176,6 @@ Ta[0] = np.ones((n**2), np.float64) * temperatura_inicial
 
 #calcula a formula
 for i in range(passos):
-    
-    C = criaMatrizC(i, n, h, dt)
     
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
@@ -200,8 +193,6 @@ Tb[0] = np.ones((n**2), np.float64) * (temperatura_inicial + 5)
 #calcula a formula
 for i in range(passos):
     
-    C = criaMatrizC(i, n, h, dt)
-    
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
         Tb[i+1] = np.dot(C, Tb[i]) + W
@@ -217,8 +208,6 @@ Tc[0] = np.ones((n**2), np.float64) * (temperatura_inicial - 5)
 
 #calcula a formula
 for i in range(passos):
-    
-    C = criaMatrizC(i, n, h, dt)
     
     if(usarVetorAleatorio):
         W = np.random.rand(n**2,)
@@ -238,8 +227,8 @@ for k in range(passos+1):
     Mc = Tc[k].reshape((n, n))
 
     #pega um ponto que nao esta no meio
-    i = int(n * 0.25)
-    j = int(n * 0.45)
+    i = int(n * 0.75)
+    j = int(n * 0.75)
     
      #tira um ponto pra testar a estabilidade
     posicao_estabilidade[k] = k * dt
@@ -248,14 +237,14 @@ for k in range(passos+1):
     vetor_estabilidade_menos20[k] = Mc[i][j]
     
     #aqui imprime a matriz numa imagem colorida
-    
+    '''
     #plt.switch_backend('Agg')
     plt.matshow(Ma, vmin=-temperatura_inicial, vmax=temperatura_inicial)
     #plt.matshow(Ma)
     plt.colorbar()
     plt.show()
     #plt.savefig("matriz/matriz" + str(k) + ".png")
-    
+    '''
     temperatura_media[k] = np.mean(Ma)
         
 
@@ -282,7 +271,7 @@ a_line = mlines.Line2D([], [], color='red', marker='', linestyle='-', markersize
 b_line = mlines.Line2D([], [], color='green', marker='', linestyle='--', markersize=0, label=u'Temperatura + 5 graus)')
 c_line = mlines.Line2D([], [], color='blue', marker='', linestyle='--', markersize=0, label=u'Temperatura - 5 graus)')
 
-plt.legend(handles=[a_line, b_line, c_line], loc='lower left')
+plt.legend(handles=[a_line, b_line, c_line], loc='upper right')
 
 '''Posicoes da legenda 
     upper right
@@ -301,29 +290,3 @@ plt.title(u"Temperatura no ponto pesquisado", )
 plt.show()
 #plt.savefig("previsao.png")
 
-
-#------ Imprime o grafico da temperatura media na area pesquisada -------
-'''
-plt.plot(
-    posicao_estabilidade, temperatura_media, 'r-' 
-    ) 
-
-plt.ylabel(u"temperatura") #esse 'u' antes da string é pra converter o texto pra unicode
-plt.xlabel(u"tempo")
-'''
-
-'''Posicoes da legenda 
-    upper right
-    upper left
-    lower left
-    lower right
-    right
-    center left
-    center right
-    lower center
-    upper center
-    center
-'''
-
-#plt.title(u"Temperatura no ponto pesquisado", )
-#plt.show()
