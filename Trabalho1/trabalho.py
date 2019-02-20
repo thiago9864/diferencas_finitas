@@ -24,7 +24,7 @@ dt = 1 #espaco de tempo
 n = 10 #quantidade de pontos
 
 passos = len(arr_u) #quantos passos no tempo vai dar
-temperatura_inicial = 26.8
+temperatura_inicial = 26.22
 
 h = 20.0/n #espacamento da grade
 
@@ -159,7 +159,7 @@ Com:
 def criaMatrizC(pos, n, h, dt):
     u = arr_u[pos]
     v = arr_v[pos]
-    print(u, v)
+    #print(u, v)
     
     matriz = matrizEulerEstatico(n, u, v, h)
     #matriz = matrizEuler(n, u, v, h, dt)
@@ -228,6 +228,9 @@ for i in range(passos):
     
 
 
+#pega um ponto que nao esta no meio
+iP = int(n * 0.25)
+jP = int(n * 0.45)
 
 #imprime e separa pontos pra testar a estabilidade
 for k in range(passos+1):
@@ -237,29 +240,29 @@ for k in range(passos+1):
     Mb = Tb[k].reshape((n, n))
     Mc = Tc[k].reshape((n, n))
 
-    #pega um ponto que nao esta no meio
-    i = int(n * 0.25)
-    j = int(n * 0.45)
     
      #tira um ponto pra testar a estabilidade
     posicao_estabilidade[k] = k * dt
-    vetor_estabilidade[k] = Ma[i][j]
-    vetor_estabilidade_mais20[k] = Mb[i][j]
-    vetor_estabilidade_menos20[k] = Mc[i][j]
+    vetor_estabilidade[k] = Ma[iP][jP]
+    vetor_estabilidade_mais20[k] = Mb[iP][jP]
+    vetor_estabilidade_menos20[k] = Mc[iP][jP]
     
     #aqui imprime a matriz numa imagem colorida
-    
-    #plt.switch_backend('Agg')
+    '''
+    plt.switch_backend('Agg')
     plt.matshow(Ma, vmin=-temperatura_inicial, vmax=temperatura_inicial)
     #plt.matshow(Ma)
     plt.colorbar()
     plt.show()
-    #plt.savefig("matriz/matriz" + str(k) + ".png")
-    
+    plt.savefig("matriz/matriz" + str(k) + ".png")
+    '''
     temperatura_media[k] = np.mean(Ma)
         
 
 #------ Imprime o grafico de teste de estabilidade -------
+
+temperatura_exata = [26.22,26.83,25.96,22.93,21.84,21.46,20.5]
+print("Vetor estabilidade:",vetor_estabilidade)
     
 figure(num=None, figsize=(8, 6), dpi=72, facecolor='w', edgecolor='k')
 
@@ -272,6 +275,9 @@ plt.plot(
 plt.plot(
     posicao_estabilidade, vetor_estabilidade_menos20, 'b--' 
     )
+plt.plot(
+    posicao_estabilidade, temperatura_exata, 'k-' 
+    )
 
 plt.ylabel(u"temperatura") #esse 'u' antes da string é pra converter o texto pra unicode
 plt.xlabel(u"tempo")
@@ -279,10 +285,11 @@ plt.xlabel(u"tempo")
 
 #legendas do grafico    
 a_line = mlines.Line2D([], [], color='red', marker='', linestyle='-', markersize=0, label=u'Temperatura')
-b_line = mlines.Line2D([], [], color='green', marker='', linestyle='--', markersize=0, label=u'Temperatura + 5 graus)')
-c_line = mlines.Line2D([], [], color='blue', marker='', linestyle='--', markersize=0, label=u'Temperatura - 5 graus)')
+b_line = mlines.Line2D([], [], color='green', marker='', linestyle='--', markersize=0, label=u'Temperatura +5 graus')
+c_line = mlines.Line2D([], [], color='blue', marker='', linestyle='--', markersize=0, label=u'Temperatura -5 graus')
+d_line = mlines.Line2D([], [], color='black', marker='', linestyle='-', markersize=0, label=u'Temperatura exata (INPE)')
 
-plt.legend(handles=[a_line, b_line, c_line], loc='lower left')
+plt.legend(handles=[a_line, b_line, c_line, d_line], loc='lower left')
 
 '''Posicoes da legenda 
     upper right
@@ -297,8 +304,9 @@ plt.legend(handles=[a_line, b_line, c_line], loc='lower left')
     center
 '''
 
-plt.title(u"Temperatura no ponto pesquisado", )
+plt.title(u"Temperatura no ponto ("+str(iP)+","+str(jP)+") (n="+str(n)+")", )
 plt.show()
+
 #plt.savefig("previsao.png")
 
 

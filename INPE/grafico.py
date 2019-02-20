@@ -17,8 +17,8 @@ figure(num=None, figsize=(8, 6), dpi=72, facecolor='w', edgecolor='k')
 
 arquivo = open("BRB1805ED.csv", 'r');
 
-x = np.empty((0,), dtype=np.float128)
-y = np.empty((0,), dtype=np.float128)
+x = np.empty((0,), dtype=np.float64)
+y = np.empty((0,), dtype=np.float64)
 
 #tive que fazer isso pra rodar no Linux
 conteudo = arquivo.readlines();
@@ -38,7 +38,7 @@ else:
 #------ filtro do grafico --------
 ano = 2018
 dia = 121 #01/05/2018
-hora_inicio = 19
+hora_inicio = 18
 hora_fim = 24
 
 def corrigeNumero(dado):
@@ -69,7 +69,7 @@ for linha in linhas:
             if(d_min >= hora_inicio*60 and d_min <= hora_fim*60):
                 a = corrigeNumero(dados[3])
                 b = corrigeNumero(dados[10])
-                x = np.append(x, np.float64(a))
+                x = np.append(x, (np.float64(a)/60)-18)
                 y = np.append(y, np.float64(b))
                 
                 if((d_min-1) % 60 == 0 or d_min==1439):
@@ -89,29 +89,11 @@ plt.plot(
     x, y, 'r-' 
     )
 
-plt.ylabel(u"tp_sfc") #esse 'u' antes da string é pra converter o texto pra unicode
-plt.xlabel(u"min")
+plt.ylabel(u"temperatura") #esse 'u' antes da string é pra converter o texto pra unicode
+plt.xlabel(u"tempo")
 
 
-#legendas do grafico    
-a_line = mlines.Line2D([], [], color='red', marker='', markersize=0, label=u'Temperatura')
-b_line = mlines.Line2D([], [], color='green', marker='', markersize=0, label=u'Temperatura + 5 graus)')
-c_line = mlines.Line2D([], [], color='blue', marker='', markersize=0, label=u'Temperatura - 5 graus)')
-
-plt.legend(handles=[a_line, b_line, c_line], loc='center')
-
-'''Posicoes da legenda 
-    upper right
-    upper left
-    lower left
-    lower right
-    right
-    center left
-    center right
-    lower center
-    upper center
-    center
-'''
-
-plt.title(u"Temperatura no ponto pesquisado", )
+plt.title(u"Temperatura da estação", )
 plt.show()
+
+;26.8;0.448;118.5;18.0;0;26.8;-0.213767124596;0.393710066473
