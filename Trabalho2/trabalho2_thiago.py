@@ -36,11 +36,10 @@ N = 10
 #coordenadas polares
 hp = 1.0 / N
 kp = (np.pi*2.0) / N
-i = N+1
 
 #coordenadas retangulares
-hr = 2.0 / N
-kr = 2.0 / N
+hr = 1.0 / N
+kr = 1.0 / N
     
 
 
@@ -51,21 +50,45 @@ kr = 2.0 / N
 
 
 #Monta coeficientes (como na pag 2)
-a = (1.0/hp**2) + (1.0 / (2.0 * i * hp**2))
-b = (1.0/hp**2) - (1.0 / (2.0 * i * hp**2))
-c = (2.0/hp**2) + (2.0 / ((i * hp)**2 * kp**2))
-d = (1.0 / ((i * hp)**2 * kp**2))
+def a(i,h): 
+    return (1.0/h**2) + (1.0 / (2.0 * i * h**2))
+
+def b(i,h):
+    return (1.0/h**2) - (1.0 / (2.0 * i * h**2))
+
+def c(i, h, k):
+    return (2.0/h**2) + (2.0 / ((i * h)**2 * k**2))
+
+def d(i, h, k):
+    return (1.0 / ((i * h)**2 * k**2))
 
 #Matriz T
-diagonal_principal = np.ones((N,), np.float64) * c * -1
-diagonal_superior = np.ones((N-1,), np.float64) * a
-diagonal_inferior = np.ones((N-1,), np.float64) * b
+#declara variaveis
+diagonal_principal = np.zeros((N,), np.float64)
+diagonal_superior = np.zeros((N-1,), np.float64)
+diagonal_inferior = np.zeros((N-1,), np.float64)
 
+#preenche diagonal principal da matriz T
+for i in range(N):
+    diagonal_principal[i] = c(i+1, hp, kp) * -1
+    
+#preenche as diagonais secundarias da matriz T
+for i in range(N-1):
+    diagonal_superior[i] = a(i+1, hp)
+    diagonal_inferior[i] = b(i+1, hp)
+
+#monta a matriz T
 T = np.diagflat(diagonal_principal, 0) + np.diagflat(diagonal_superior, 1) + np.diagflat(diagonal_inferior, -1)
 
 #Matriz I
-diagonal_principal = np.ones((N,), np.float64) * d
+#declara variavel
+diagonal_principal = np.zeros((N,), np.float64)
 
+#preenche diagonal da matriz I
+for i in range(N):
+    diagonal_principal[i] = d(i+1, hp, kp)
+    
+#monta matriz I
 I = np.diagflat(diagonal_principal, 0)
 
 #Matriz completa
@@ -94,18 +117,18 @@ imprimeMatriz(Ap)
 
 #Monta coeficientes (como na pag 4)
 a = (1.0/hr**2)
-b = (2.0/hr**2) - (2.0 / kr**2)
-c = (2.0/kr**2)
+b = (2.0 / hr**2) + (2.0 / kr**2)
+c = (1.0/kr**2)
 
 #Matriz T
-diagonal_principal = np.ones((N,), np.float64) * c * -1
+diagonal_principal = np.ones((N,), np.float64) * b * -1.0
 diagonal_superior = np.ones((N-1,), np.float64) * a
 diagonal_inferior = np.ones((N-1,), np.float64) * a
 
 T = np.diagflat(diagonal_principal, 0) + np.diagflat(diagonal_superior, 1) + np.diagflat(diagonal_inferior, -1)
 
 #Matriz I
-diagonal_principal = np.ones((N,), np.float64) * d
+diagonal_principal = np.ones((N,), np.float64) * c
 
 I = np.diagflat(diagonal_principal, 0)
 
